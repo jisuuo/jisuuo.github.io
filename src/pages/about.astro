@@ -1,0 +1,15 @@
+---
+import { GITHUB_URL } from '../consts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About" description="소개">
+	<h1>About</h1>
+	<div class="prose">
+		<p>여기에 자기소개를 적어주세요. 이 페이지는 <code>src/pages/about.astro</code>에서 수정할 수 있습니다.</p>
+		<h2>Contact</h2>
+		<ul>
+			<li>GitHub: <a href={GITHUB_URL}>{GITHUB_URL}</a></li>
+		</ul>
+	</div>
+</BaseLayout>

@@ -1,0 +1,140 @@
+:root {
+	--content-width: 760px;
+	--accent: #2563eb;
+	--text: #1f2328;
+	--text-muted: #656d76;
+	--bg: #ffffff;
+	--bg-soft: #f6f8fa;
+	--border: #e5e7eb;
+	color-scheme: light;
+}
+:root[data-theme='dark'] {
+	--accent: #60a5fa;
+	--text: #e6edf3;
+	--text-muted: #9198a1;
+	--bg: #0d1117;
+	--bg-soft: #161b22;
+	--border: #30363d;
+	color-scheme: dark;
+}
+
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family:
+		'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+	font-size: 17px;
+	line-height: 1.75;
+	word-break: keep-all;
+	overflow-wrap: break-word;
+}
+main {
+	max-width: var(--content-width);
+	margin: 0 auto;
+	padding: 2.5rem 1.25rem 0;
+}
+h1,
+h2,
+h3,
+h4 {
+	line-height: 1.35;
+}
+h1 {
+	margin-top: 0;
+}
+a {
+	color: var(--accent);
+}
+img {
+	max-width: 100%;
+	height: auto;
+}
+hr {
+	border: none;
+	border-top: 1px solid var(--border);
+}
+.muted {
+	color: var(--text-muted);
+}
+
+/* 본문 */
+.prose h2 {
+	margin-top: 2.5rem;
+}
+.prose blockquote {
+	margin: 1.5rem 0;
+	padding: 0.25rem 1rem;
+	border-left: 4px solid var(--border);
+	color: var(--text-muted);
+}
+.prose table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.prose th,
+.prose td {
+	padding: 0.5rem;
+	border: 1px solid var(--border);
+}
+code {
+	padding: 0.15em 0.35em;
+	border-radius: 4px;
+	background: var(--bg-soft);
+	font-size: 0.9em;
+}
+pre {
+	padding: 1rem;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
+pre > code {
+	padding: 0;
+	background: none;
+	font-size: inherit;
+}
+/* Shiki 듀얼 테마: 다크 모드에서는 --shiki-dark 색을 쓴다 */
+[data-theme='dark'] .astro-code,
+[data-theme='dark'] .astro-code span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
+}
+
+/* 공용 레이아웃 */
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+	gap: 1rem;
+}
+.chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	padding: 0;
+	list-style: none;
+}
+.chips a {
+	display: inline-block;
+	padding: 0.3rem 0.8rem;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	color: var(--text);
+	text-decoration: none;
+}
+.chips a:hover {
+	border-color: var(--accent);
+}
+
+.sr-only {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(1px, 1px, 1px, 1px);
+	white-space: nowrap;
+}

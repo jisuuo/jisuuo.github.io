@@ -1,0 +1,20 @@
+---
+import PostList from '../../components/PostList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, groupBy, slugify, type Post } from '../../utils/posts';
+
+export async function getStaticPaths() {
+	return [...groupBy(await getPosts(), 'tags')].map(([tag, posts]) => ({
+		params: { tag: slugify(tag) },
+		props: { tag, posts },
+	}));
+}
+
+const { tag, posts } = Astro.props as { tag: string; posts: Post[] };
+---
+
+<BaseLayout title={`#${tag}`} description={`${tag} 태그가 달린 글`}>
+	<h1>#{tag}</h1>
+	<p class="muted">{posts.length}개의 글 · <a href="/tags/">전체 태그</a></p>
+	<PostList posts={posts} />
+</BaseLayout>

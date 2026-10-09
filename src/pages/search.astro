@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Search" description="글 검색">
+	<link slot="head" rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+	<h1>Search</h1>
+	<div id="search"></div>
+	<noscript>검색은 JavaScript가 필요합니다.</noscript>
+	<p class="muted dev-note">
+		검색 인덱스는 <code>npm run build</code> 후에 생성됩니다. 개발 서버(<code>npm run dev</code>)에서는 동작하지 않습니다.
+	</p>
+</BaseLayout>
+
+<script is:inline src="/pagefind/pagefind-ui.js"></script>
+<script is:inline>
+	if (window.PagefindUI) {
+		new PagefindUI({ element: '#search', showSubResults: true, translations: { placeholder: '검색어를 입력하세요' } });
+		document.querySelector('.dev-note')?.remove();
+	}
+</script>
+
+<style is:global>
+	#search {
+		--pagefind-ui-primary: var(--accent);
+		--pagefind-ui-text: var(--text);
+		--pagefind-ui-background: var(--bg);
+		--pagefind-ui-border: var(--border);
+		--pagefind-ui-tag: var(--bg-soft);
+		--pagefind-ui-font: inherit;
+	}
+</style>

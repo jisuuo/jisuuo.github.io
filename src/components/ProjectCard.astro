@@ -1,0 +1,59 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+	project: CollectionEntry<'projects'>;
+}
+
+const { title, description, stack, github, demo } = Astro.props.project.data;
+---
+
+<article class="card">
+	<h3>{title}</h3>
+	<p>{description}</p>
+	<ul class="stack">{stack.map((s) => <li>{s}</li>)}</ul>
+	<div class="links">
+		{github && <a href={github} target="_blank" rel="noopener">GitHub →</a>}
+		{demo && <a href={demo} target="_blank" rel="noopener">Demo →</a>}
+	</div>
+</article>
+
+<style>
+	.card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+		padding: 1.25rem;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		background: var(--bg-soft);
+	}
+	h3 {
+		margin: 0;
+		font-size: 1.1rem;
+	}
+	p {
+		margin: 0;
+		color: var(--text-muted);
+	}
+	.stack {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.stack li {
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		background: var(--border);
+		font-size: 0.8rem;
+	}
+	.links {
+		display: flex;
+		gap: 1rem;
+		margin-top: auto;
+		font-size: 0.9rem;
+	}
+</style>

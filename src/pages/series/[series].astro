@@ -1,0 +1,21 @@
+---
+import PostList from '../../components/PostList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, groupBy, slugify, sortSeries, type Post } from '../../utils/posts';
+
+export async function getStaticPaths() {
+	return [...groupBy(await getPosts(), 'series')].map(([name, posts]) => ({
+		params: { series: slugify(name) },
+		props: { name, posts: sortSeries(posts) },
+	}));
+}
+
+const { name, posts } = Astro.props as { name: string; posts: Post[] };
+---
+
+<BaseLayout title={name} description={`${name} 시리즈`}>
+	<p class="muted"><a href="/series/">Series</a></p>
+	<h1>{name}</h1>
+	<p class="muted">{posts.length}편</p>
+	<PostList posts={posts} />
+</BaseLayout>

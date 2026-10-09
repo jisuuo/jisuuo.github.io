@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, groupBy, slugify } from '../../utils/posts';
+
+const series = [...groupBy(await getPosts(), 'series')];
+---
+
+<BaseLayout title="Series" description="시리즈 목록">
+	<h1>Series</h1>
+	<ul class="series-list">
+		{
+			series.map(([name, posts]) => (
+				<li>
+					<a href={`/series/${slugify(name)}/`}>{name}</a>
+					<span class="muted">{posts.length}편</span>
+				</li>
+			))
+		}
+	</ul>
+</BaseLayout>
+
+<style>
+	.series-list {
+		padding: 0;
+		list-style: none;
+	}
+	.series-list li {
+		display: flex;
+		justify-content: space-between;
+		padding: 1rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+	.series-list a {
+		font-weight: 600;
+	}
+</style>

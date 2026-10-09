@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, groupBy, slugify } from '../../utils/posts';
+
+const tags = [...groupBy(await getPosts(), 'tags')].sort((a, b) => b[1].length - a[1].length);
+---
+
+<BaseLayout title="Tags" description="태그 목록">
+	<h1>Tags</h1>
+	<ul class="chips">
+		{
+			tags.map(([tag, posts]) => (
+				<li>
+					<a href={`/tags/${slugify(tag)}/`}>
+						#{tag} <span class="muted">{posts.length}</span>
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</BaseLayout>
