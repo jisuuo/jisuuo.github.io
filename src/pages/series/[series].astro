@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 const { name, posts } = Astro.props as { name: string; posts: Post[] };
 ---
 
-<BaseLayout title={name} description={`${name} 시리즈`}>
+<BaseLayout title={name} description={`${name} 시리즈`} activeSeries={name}>
 	<p class="muted"><a href="/series/">Series</a></p>
 	<h1>{name}</h1>
 	<p class="muted">{posts.length}편</p>

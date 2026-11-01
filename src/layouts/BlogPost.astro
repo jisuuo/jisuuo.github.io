@@ -1,8 +1,11 @@
 ---
 import { Image } from 'astro:assets';
 import FormattedDate from '../components/FormattedDate.astro';
+import PostList from '../components/PostList.astro';
 import SeriesBox from '../components/SeriesBox.astro';
+import { TOPIC_GROUPS } from '../data/topics';
 import { getPosts, groupBy, slugify, sortSeries, type Post } from '../utils/posts';
+import { isInTopic, topicTrail } from '../utils/topic-tree';
 import BaseLayout from './BaseLayout.astro';
 
 interface Props {
@@ -10,7 +13,7 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { title, description, pubDate, updatedDate, heroImage, tags, series } = post.data;
+const { title, description, pubDate, updatedDate, heroImage, tags, series, topic } = post.data;
 
 // 시리즈 글이면 시리즈 안의 이전/다음 글로 연결한다.
 let prev: Post | undefined;
@@ -21,11 +24,30 @@ if (series) {
 	prev = posts[index - 1];
 	next = posts[index + 1];
 }
+
+// 주제 글이면 본문 위 경로와 같은 주제의 다른 글(최대 5개)을 보여 준다.
+const trail = topic ? topicTrail(TOPIC_GROUPS, topic) : undefined;
+const related = topic
+	? (await getPosts()).filter((p) => p.id !== post.id && isInTopic(p.data.topic, topic)).slice(0, 5)
+	: [];
 ---
 
-<BaseLayout title={title} description={description} image={heroImage}>
+<BaseLayout title={title} description={description} image={heroImage} activeTopic={topic} activeSeries={series}>
 	<article data-pagefind-body>
 		<header class="post-header">
+			{
+				trail && (
+					<p class="crumb">
+						{trail.group.name}
+						{trail.path.map((t) => (
+							<>
+								{' › '}
+								<a href={`/topics/${t.slug}/`}>{t.name}</a>
+							</>
+						))}
+					</p>
+				)
+			}
 			<h1>{title}</h1>
 			<div class="meta">
 				<FormattedDate date={pubDate} />
@@ -73,6 +95,14 @@ if (series) {
 			</nav>
 		)
 	}
+	{
+		related.length > 0 && (
+			<section class="related">
+				<h2>같은 주제의 다른 글</h2>
+				<PostList posts={related} />
+			</section>
+		)
+	}
 </BaseLayout>
 
 <style>
@@ -88,6 +118,7 @@ if (series) {
 		display: flex;
 		gap: 0.5rem;
 		color: var(--text-muted);
+		font-family: var(--font-mono);
 		font-size: 0.9rem;
 	}
 	.tags {
@@ -127,5 +158,16 @@ if (series) {
 	.series-nav .next {
 		grid-column: 2;
 		text-align: right;
+	}
+	.crumb {
+		margin: 0 0 0.5rem;
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+	.related {
+		margin-top: 3rem;
+	}
+	.related h2 {
+		font-size: 1.1rem;
 	}
 </style>
