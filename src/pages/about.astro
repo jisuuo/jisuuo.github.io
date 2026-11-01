@@ -1,5 +1,5 @@
 ---
-import { GITHUB_URL } from '../consts';
+import { EMAIL, GITHUB_URL } from '../consts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const topics = [
@@ -42,6 +42,7 @@ const topics = [
 		<h2>Contact</h2>
 		<ul>
 			<li>GitHub: <a href={GITHUB_URL}>{GITHUB_URL}</a></li>
+			<li>Email: <a href={`mailto:${EMAIL}`}>{EMAIL}</a></li>
 		</ul>
 	</section>
 </BaseLayout>

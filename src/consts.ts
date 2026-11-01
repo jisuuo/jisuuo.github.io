@@ -5,3 +5,4 @@ export const SITE_TITLE = 'jissuo.blog';
 export const SITE_DESCRIPTION = '프로젝트와 기술 블로그';
 export const AUTHOR = 'jisuuo';
 export const GITHUB_URL = 'https://github.com/jisuuo';
+export const EMAIL = 'me@jissuo.com';
