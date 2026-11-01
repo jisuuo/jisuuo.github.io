@@ -1,6 +1,8 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { TOPIC_GROUPS } from './data/topics';
+import { validateTopicRef } from './utils/topic-tree';
 
 const blog = defineCollection({
 	// Load Markdown and MDX files in the `src/content/blog/` directory.
@@ -18,6 +20,14 @@ const blog = defineCollection({
 			series: z.string().optional(),
 			seriesOrder: z.number().optional(),
 			draft: z.boolean().default(false),
+			// src/data/topics.ts의 slug. 예: 'cs/network'
+			topic: z.string().optional(),
+			// 그 주제 plan의 항목. 적으면 체크리스트에 완료로 표시된다.
+			planItem: z.string().optional(),
+		})
+		.superRefine((data, ctx) => {
+			const error = validateTopicRef(TOPIC_GROUPS, data);
+			if (error) ctx.addIssue({ code: 'custom', message: error });
 		}),
 });
 
