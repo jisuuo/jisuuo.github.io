@@ -2,6 +2,7 @@
 import type { Post } from '../utils/posts';
 import { slugify } from '../utils/posts';
 import FormattedDate from './FormattedDate.astro';
+import { readingMinutes } from '../utils/topic-tree';
 
 interface Props {
 	posts: Post[];
@@ -26,6 +27,7 @@ const { posts } = Astro.props;
 							#{tag}
 						</a>
 					))}
+					<span class="reading">{readingMinutes(post.body ?? '')}분</span>
 				</div>
 			</li>
 		))
@@ -39,28 +41,43 @@ const { posts } = Astro.props;
 		list-style: none;
 	}
 	li {
-		padding: 1.25rem 0;
+		padding: 1rem 0;
 		border-bottom: 1px solid var(--border);
 	}
 	.title {
 		color: var(--text);
-		font-size: 1.15rem;
+		font-size: 1.05rem;
 		font-weight: 600;
+		line-height: 1.4;
 		text-decoration: none;
 	}
 	.title:hover {
 		color: var(--accent);
 	}
 	.description {
+		display: -webkit-box;
 		margin: 0.35rem 0;
+		overflow: hidden;
 		color: var(--text-muted);
+		font-size: 0.92rem;
+		line-height: 1.6;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
 	}
 	.meta {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.75rem;
+		gap: 0.25rem 0.75rem;
 		color: var(--text-muted);
-		font-size: 0.85rem;
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+	}
+	.tag {
+		color: var(--accent);
+		text-decoration: none;
+	}
+	.reading {
+		margin-left: auto;
 	}
 	.draft {
 		margin-right: 0.5rem;
