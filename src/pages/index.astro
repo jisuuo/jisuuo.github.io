@@ -1,58 +1,71 @@
 ---
 import { getCollection } from 'astro:content';
 import PostList from '../components/PostList.astro';
+import ProgressBar from '../components/ProgressBar.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { TOPIC_GROUPS } from '../data/topics';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getPosts } from '../utils/posts';
+import { nextPlanItems, progressOf } from '../utils/topic-tree';
 
-const posts = (await getPosts()).slice(0, 5);
+const allPosts = await getPosts();
+const posts = allPosts.slice(0, 10);
+const refs = allPosts.map((p) => p.data);
 const projects = (await getCollection('projects', ({ data }) => data.featured)).sort(
 	(a, b) => a.data.order - b.data.order,
 );
 
-const topics = [
-	{ icon: '🛠️', name: 'Backend', desc: 'Java · Spring Boot · Database · API 설계' },
-	{ icon: '💻', name: 'Frontend', desc: 'React · TypeScript · React Native · Flutter' },
-	{ icon: '🤖', name: 'AI', desc: 'AI Agent · LLM · RAG 학습과 실험' },
-	{ icon: '🧩', name: 'Problem Solving', desc: '실무에서 마주친 설계 고민과 문제 해결 기록' },
-];
-
-const skills = [
-	['Mobile', 'Flutter · React Native · Dart'],
-	['Frontend', 'React · TypeScript · JavaScript'],
-	['Backend', 'Java · Spring Boot · REST API · Spring Security/JWT · MyBatis · JPA/QueryDSL'],
-	['Database', 'MSSQL · Oracle · MySQL · SQLite'],
-	['Infra', 'AWS(S3/CloudFront/RDS) · Docker · GitHub Actions · FCM'],
-];
+// plan이 있는 그룹(CS, 언어)만 로드맵에 보여 준다.
+const roadmap = TOPIC_GROUPS.map((group) => ({ group, progress: progressOf(group.topics, refs) })).filter(
+	({ progress }) => progress.total > 0,
+);
+const next = nextPlanItems(
+	roadmap.flatMap(({ group }) => group.topics),
+	refs,
+	3,
+);
 ---
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
 	<section class="intro">
 		<h1>안녕하세요, 최지수입니다.</h1>
-		<p>
-			모바일 앱 개발로 시작해 웹 프론트엔드와 백엔드까지 영역을 넓혀 온 <strong>4년차 소프트웨어 개발자</strong>입니다.
-			Flutter·React Native, React·TypeScript, Java·Spring Boot로 실제 운영 시스템을 만들고 고쳐 왔습니다.
-		</p>
 		<p class="muted">
-			이 블로그에는 기능 개발, 외부 연동, 배포, 유지보수를 하며 배운 것들과 AI·LLM을 공부하고 실험한 내용을 기록합니다.
+			백엔드를 중심으로 CS 기본기를 하나씩 정리하고, 프로젝트를 만들며 배운 것을 기록합니다.
+			<a href="/about/">더 보기 →</a>
 		</p>
 	</section>
 
 	<section>
-		<h2>다루는 주제</h2>
-		<div class="topics">
+		<h2>CS 로드맵</h2>
+		<ul class="roadmap">
 			{
-				topics.map((t) => (
-					<div class="topic">
-						<strong>
-							{t.icon} {t.name}
-						</strong>
-						<span class="muted">{t.desc}</span>
-					</div>
+				roadmap.map(({ group, progress }) => (
+					<li>
+						<span class="name">{group.name}</span>
+						<ProgressBar {...progress} />
+						<span class="count">
+							{progress.done}/{progress.total}
+						</span>
+					</li>
 				))
 			}
-		</div>
+		</ul>
+		{
+			next.length > 0 && (
+				<>
+					<h3>다음에 공부할 것</h3>
+					<ul class="next">
+						{next.map(({ topic, item }) => (
+							<li>
+								<a href={`/topics/${topic.slug}/`}>{topic.name}</a>
+								<span class="muted"> · {item}</span>
+							</li>
+						))}
+					</ul>
+				</>
+			)
+		}
 	</section>
 
 	<section>
@@ -76,20 +89,6 @@ const skills = [
 			</section>
 		)
 	}
-
-	<section>
-		<h2>기술 스택</h2>
-		<dl class="skills">
-			{
-				skills.map(([area, list]) => (
-					<>
-						<dt>{area}</dt>
-						<dd>{list}</dd>
-					</>
-				))
-			}
-		</dl>
-	</section>
 </BaseLayout>
 
 <style>
@@ -102,42 +101,35 @@ const skills = [
 	section + section {
 		margin-top: 3rem;
 	}
-	.topics {
+	.roadmap {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+		gap: 0.6rem;
+		max-width: 480px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.roadmap li {
+		display: grid;
+		grid-template-columns: 4rem 1fr 4rem;
+		align-items: center;
 		gap: 0.75rem;
 	}
-	.topic {
-		display: flex;
-		flex-direction: column;
-		padding: 1rem 1.25rem;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--bg-soft);
-	}
-	.topic span {
-		font-size: 0.9rem;
-	}
-	.skills {
-		display: grid;
-		grid-template-columns: max-content 1fr;
-		gap: 0.5rem 1.25rem;
-		margin: 0;
-	}
-	.skills dt {
+	.roadmap .name {
 		font-weight: 600;
 	}
-	.skills dd {
-		margin: 0;
+	.roadmap .count {
 		color: var(--text-muted);
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		text-align: right;
 	}
-	@media (max-width: 560px) {
-		.skills {
-			grid-template-columns: 1fr;
-			gap: 0 0;
-		}
-		.skills dd {
-			margin-bottom: 0.75rem;
-		}
+	h3 {
+		margin: 1.5rem 0 0.5rem;
+		font-size: 1rem;
+	}
+	.next {
+		margin: 0;
+		padding-left: 1.25rem;
 	}
 </style>
