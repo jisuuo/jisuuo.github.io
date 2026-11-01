@@ -1,135 +1,70 @@
 ---
-import { getCollection } from 'astro:content';
-import PostList from '../components/PostList.astro';
-import ProgressBar from '../components/ProgressBar.astro';
-import ProjectCard from '../components/ProjectCard.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
-import { TOPIC_GROUPS } from '../data/topics';
+import ContributionGraph from '../components/ContributionGraph.astro';
+import { AUTHOR, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getPosts } from '../utils/posts';
-import { nextPlanItems, progressOf } from '../utils/topic-tree';
+import { fetchContributions } from '../utils/contributions';
 
-const allPosts = await getPosts();
-const posts = allPosts.slice(0, 10);
-const refs = allPosts.map((p) => p.data);
-const projects = (await getCollection('projects', ({ data }) => data.featured)).sort(
-	(a, b) => a.data.order - b.data.order,
-);
+const days = await fetchContributions(AUTHOR);
 
-// plan이 있는 그룹(CS, 언어)만 로드맵에 보여 준다.
-const roadmap = TOPIC_GROUPS.map((group) => ({ group, progress: progressOf(group.topics, refs) })).filter(
-	({ progress }) => progress.total > 0,
-);
-const next = nextPlanItems(
-	roadmap.flatMap(({ group }) => group.topics),
-	refs,
-	3,
-);
+const skills = [
+	['Mobile', 'Flutter · React Native · Dart'],
+	['Frontend', 'React · TypeScript · JavaScript'],
+	['Backend', 'Java · Spring Boot · REST API · Spring Security/JWT · MyBatis · JPA/QueryDSL'],
+	['Database', 'MSSQL · Oracle · MySQL · SQLite'],
+	['Infra', 'AWS(S3/CloudFront/RDS) · Docker · GitHub Actions · FCM'],
+];
 ---
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
-	<section class="intro">
-		<h1>안녕하세요, 최지수입니다.</h1>
-		<p class="muted">
-			백엔드를 중심으로 CS 기본기를 하나씩 정리하고, 프로젝트를 만들며 배운 것을 기록합니다.
-			<a href="/about/">더 보기 →</a>
-		</p>
+	<h1 class="sr-only">{SITE_TITLE}</h1>
+
+	<section>
+		<h2>GitHub 활동</h2>
+		<ContributionGraph days={days} />
 	</section>
 
 	<section>
-		<h2>CS 로드맵</h2>
-		<ul class="roadmap">
+		<h2>기술 스택</h2>
+		<dl class="skills">
 			{
-				roadmap.map(({ group, progress }) => (
-					<li>
-						<span class="name">{group.name}</span>
-						<ProgressBar {...progress} />
-						<span class="count">
-							{progress.done}/{progress.total}
-						</span>
-					</li>
+				skills.map(([area, list]) => (
+					<>
+						<dt>{area}</dt>
+						<dd>{list}</dd>
+					</>
 				))
 			}
-		</ul>
-		{
-			next.length > 0 && (
-				<>
-					<h3>다음에 공부할 것</h3>
-					<ul class="next">
-						{next.map(({ topic, item }) => (
-							<li>
-								<a href={`/topics/${topic.slug}/`}>{topic.name}</a>
-								<span class="muted"> · {item}</span>
-							</li>
-						))}
-					</ul>
-				</>
-			)
-		}
+		</dl>
 	</section>
-
-	<section>
-		<h2>최근 글</h2>
-		<PostList posts={posts} />
-		<p><a href="/blog/">전체 글 보기 →</a></p>
-	</section>
-
-	{
-		projects.length > 0 && (
-			<section>
-				<h2>대표 프로젝트</h2>
-				<div class="grid">
-					{projects.map((project) => (
-						<ProjectCard project={project} />
-					))}
-				</div>
-				<p>
-					<a href="/projects/">전체 프로젝트 보기 →</a>
-				</p>
-			</section>
-		)
-	}
 </BaseLayout>
 
 <style>
-	.intro {
-		margin-bottom: 3rem;
-	}
-	.intro p {
-		margin: 0.5rem 0;
+	h2 {
+		margin-top: 0;
 	}
 	section + section {
 		margin-top: 3rem;
 	}
-	.roadmap {
+	.skills {
 		display: grid;
-		gap: 0.6rem;
-		max-width: 480px;
+		grid-template-columns: max-content 1fr;
+		gap: 0.5rem 1.25rem;
 		margin: 0;
-		padding: 0;
-		list-style: none;
 	}
-	.roadmap li {
-		display: grid;
-		grid-template-columns: 4rem 1fr 4rem;
-		align-items: center;
-		gap: 0.75rem;
-	}
-	.roadmap .name {
+	.skills dt {
 		font-weight: 600;
 	}
-	.roadmap .count {
-		color: var(--text-muted);
-		font-family: var(--font-mono);
-		font-size: 0.8rem;
-		text-align: right;
-	}
-	h3 {
-		margin: 1.5rem 0 0.5rem;
-		font-size: 1rem;
-	}
-	.next {
+	.skills dd {
 		margin: 0;
-		padding-left: 1.25rem;
+		color: var(--text-muted);
+	}
+	@media (max-width: 560px) {
+		.skills {
+			grid-template-columns: 1fr;
+			gap: 0 0;
+		}
+		.skills dd {
+			margin-bottom: 0.75rem;
+		}
 	}
 </style>

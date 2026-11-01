@@ -75,20 +75,6 @@ export function progressOf(topics: Topic[], refs: TopicRef[]): Progress {
 	);
 }
 
-/** 아직 글이 없는 plan 항목을 주제 순서대로 limit개. */
-export function nextPlanItems(
-	topics: Topic[],
-	refs: TopicRef[],
-	limit: number,
-): { topic: Topic; item: string }[] {
-	return flattenTopics(topics)
-		.flatMap((topic) => {
-			const done = completedItems(topic, refs);
-			return (topic.plan ?? []).filter((item) => !done.has(item)).map((item) => ({ topic, item }));
-		})
-		.slice(0, limit);
-}
-
 /** 읽는 시간(분). 500자/분, 올림, 최소 1분. */
 export function readingMinutes(text: string): number {
 	return Math.max(1, Math.ceil(text.length / 500));

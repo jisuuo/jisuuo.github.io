@@ -3,7 +3,6 @@ import {
 	completedItems,
 	flattenTopics,
 	isInTopic,
-	nextPlanItems,
 	progressOf,
 	readingMinutes,
 	topicTrail,
@@ -101,17 +100,6 @@ describe('completedItems / progressOf', () => {
 	});
 	test('plan이 없으면 0/0', () => {
 		expect(progressOf(retro.topics, refs)).toEqual({ done: 0, total: 0 });
-	});
-});
-
-describe('nextPlanItems', () => {
-	test('완료되지 않은 항목을 주제 순서대로 limit개', () => {
-		const refs = [{ topic: 'cs/network', planItem: 'TCP' }];
-		expect(nextPlanItems(cs.topics, refs, 3).map((n) => `${n.topic.slug}:${n.item}`)).toEqual([
-			'cs/network:HTTP',
-			'cs/network:DNS',
-			'cs/database:트랜잭션',
-		]);
 	});
 });
 

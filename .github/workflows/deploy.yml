@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # 홈의 GitHub 잔디를 매일 갱신한다 (00:00 UTC = 09:00 KST)
+  schedule:
+    - cron: '0 0 * * *'
 
 permissions:
   contents: read

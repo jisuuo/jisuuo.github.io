@@ -1,0 +1,102 @@
+---
+import { GITHUB_URL } from '../consts';
+import type { ContributionDay } from '../utils/contributions';
+
+interface Props {
+	days: ContributionDay[];
+}
+
+const { days } = Astro.props;
+const total = days.reduce((sum, d) => sum + d.count, 0);
+// 열 하나가 한 주(일~토)이므로 첫 날의 요일만큼 빈 칸을 앞에 둔다.
+const offset = days.length ? new Date(`${days[0].date}T00:00:00Z`).getUTCDay() : 0;
+---
+
+{
+	days.length > 0 ? (
+		<figure class="contributions">
+			<div class="scroll">
+				<div class="cells" role="img" aria-label={`지난 1년간 GitHub 기여 ${total}회`}>
+					{Array.from({ length: offset }, () => (
+						<span class="empty" />
+					))}
+					{days.map((d) => (
+						<span class={`l${d.level}`} title={`${d.date}: ${d.count}회`} />
+					))}
+				</div>
+			</div>
+			<figcaption>
+				<span>
+					지난 1년간 <a href={GITHUB_URL} target="_blank" rel="noopener">GitHub</a> 기여 {total}회
+				</span>
+				<span class="legend" aria-hidden="true">
+					적음 <span class="l0" />
+					<span class="l1" />
+					<span class="l2" />
+					<span class="l3" />
+					<span class="l4" /> 많음
+				</span>
+			</figcaption>
+		</figure>
+	) : (
+		<p class="muted">
+			<a href={GITHUB_URL} target="_blank" rel="noopener">GitHub 프로필</a>에서 활동을 볼 수 있어요.
+		</p>
+	)
+}
+
+<style>
+	.contributions {
+		margin: 0;
+	}
+	.scroll {
+		overflow-x: auto;
+	}
+	.cells {
+		display: grid;
+		grid-auto-columns: 10px;
+		grid-auto-flow: column;
+		grid-template-rows: repeat(7, 10px);
+		gap: 3px;
+		width: max-content;
+	}
+	.cells span,
+	.legend span {
+		width: 10px;
+		height: 10px;
+		border-radius: 2px;
+	}
+	.l0 {
+		background: var(--border);
+	}
+	.l1 {
+		background: color-mix(in srgb, var(--progress) 35%, var(--border));
+	}
+	.l2 {
+		background: color-mix(in srgb, var(--progress) 60%, var(--border));
+	}
+	.l3 {
+		background: color-mix(in srgb, var(--progress) 80%, var(--border));
+	}
+	.l4 {
+		background: var(--progress);
+	}
+	.empty {
+		visibility: hidden;
+	}
+	figcaption {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+		color: var(--text-muted);
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+	}
+	.legend {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+	}
+</style>
