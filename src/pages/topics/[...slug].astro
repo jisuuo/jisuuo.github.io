@@ -1,0 +1,73 @@
+---
+import PostList from '../../components/PostList.astro';
+import ProgressBar from '../../components/ProgressBar.astro';
+import TopicChecklist from '../../components/TopicChecklist.astro';
+import { TOPIC_GROUPS } from '../../data/topics';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts } from '../../utils/posts';
+import { flattenTopics, isInTopic, progressOf, topicTrail, type Topic } from '../../utils/topic-tree';
+
+export async function getStaticPaths() {
+	return TOPIC_GROUPS.flatMap((group) =>
+		flattenTopics(group.topics).map((topic) => ({ params: { slug: topic.slug }, props: { topic } })),
+	);
+}
+
+const { topic } = Astro.props as { topic: Topic };
+const { group, path } = topicTrail(TOPIC_GROUPS, topic.slug)!;
+const posts = (await getPosts()).filter((p) => isInTopic(p.data.topic, topic.slug));
+const progress = progressOf([topic], posts.map((p) => p.data));
+const crumbs = [group.name, ...path.slice(0, -1).map((t) => t.name)];
+---
+
+<BaseLayout title={topic.name} description={`${crumbs.join(' › ')} › ${topic.name} 학습 기록`} activeTopic={topic.slug}>
+	{crumbs[crumbs.length - 1] !== topic.name && <p class="muted crumb">{crumbs.join(' › ')}</p>}
+	<h1>{topic.name}</h1>
+	{
+		progress.total > 0 && (
+			<div class="progress-row">
+				<span class="muted">{progress.done} / {progress.total} 정리함</span>
+				<ProgressBar {...progress} />
+			</div>
+		)
+	}
+	{topic.plan && <TopicChecklist topic={topic} posts={posts} />}
+	{
+		topic.children && (
+			<section>
+				<h2>하위 주제</h2>
+				<ul class="chips">
+					{topic.children.map((child) => (
+						<li>
+							<a href={`/topics/${child.slug}/`}>{child.name}</a>
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+	<h2>글 <span class="muted count">{posts.length}</span></h2>
+	{posts.length > 0 ? <PostList posts={posts} /> : <p class="muted">아직 이 주제로 쓴 글이 없어요.</p>}
+</BaseLayout>
+
+<style>
+	.crumb {
+		margin: 0 0 0.25rem;
+		font-size: 0.9rem;
+	}
+	h1 {
+		margin-bottom: 0.5rem;
+	}
+	.progress-row {
+		display: grid;
+		gap: 0.35rem;
+		max-width: 320px;
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+	}
+	.count {
+		font-family: var(--font-mono);
+		font-size: 0.9rem;
+		font-weight: 400;
+	}
+</style>

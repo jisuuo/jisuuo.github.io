@@ -1,0 +1,64 @@
+---
+import type { Post } from '../utils/posts';
+import type { Topic } from '../utils/topic-tree';
+
+interface Props {
+	topic: Topic;
+	posts: Post[];
+}
+
+const { topic, posts } = Astro.props;
+// plan 항목마다 그 항목을 다룬 글(가장 최근 글)을 찾는다.
+const items = (topic.plan ?? []).map((item) => ({
+	item,
+	post: posts.find((p) => p.data.topic === topic.slug && p.data.planItem === item),
+}));
+---
+
+<section class="checklist">
+	<h2>이 주제에서 다룰 것</h2>
+	<ul>
+		{
+			items.map(({ item, post }) => (
+				<li class:list={{ done: post }}>
+					<span class="mark" aria-hidden="true">{post ? '✓' : '○'}</span>
+					{post ? <a href={`/blog/${post.id}/`}>{item}</a> : <span>{item}</span>}
+					<span class="sr-only">{post ? '(정리함)' : '(예정)'}</span>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<style>
+	.checklist {
+		margin: 1.5rem 0 2.5rem;
+		padding: 1rem 1.25rem;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+	}
+	h2 {
+		margin: 0 0 0.5rem;
+		font-size: 1rem;
+	}
+	ul {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+		gap: 0.25rem 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 0.92rem;
+	}
+	li {
+		color: var(--text-muted);
+	}
+	.mark {
+		display: inline-block;
+		width: 1.25rem;
+		font-family: var(--font-mono);
+	}
+	.done .mark {
+		color: var(--progress);
+	}
+</style>
