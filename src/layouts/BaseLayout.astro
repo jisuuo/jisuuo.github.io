@@ -3,14 +3,19 @@ import type { ImageMetadata } from 'astro';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
 
 interface Props {
 	title: string;
 	description: string;
 	image?: ImageMetadata;
+	/** 사이드바에서 펼치고 강조할 주제 slug */
+	activeTopic?: string;
+	/** 사이드바에서 강조할 시리즈 이름 */
+	activeSeries?: string;
 }
 
-const { title, description, image } = Astro.props;
+const { title, description, image, activeTopic, activeSeries } = Astro.props;
 ---
 
 <!doctype html>
@@ -20,10 +25,16 @@ const { title, description, image } = Astro.props;
 		<slot name="head" />
 	</head>
 	<body>
-		<Header />
-		<main>
-			<slot />
-		</main>
-		<Footer />
+		<div class="layout">
+			<Sidebar activeTopic={activeTopic} activeSeries={activeSeries} />
+			<div class="nav-backdrop"></div>
+			<div class="page">
+				<Header />
+				<main>
+					<slot />
+				</main>
+				<Footer />
+			</div>
+		</div>
 	</body>
 </html>

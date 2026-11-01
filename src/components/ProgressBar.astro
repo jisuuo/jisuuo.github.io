@@ -1,0 +1,27 @@
+---
+interface Props {
+	done: number;
+	total: number;
+}
+
+const { done, total } = Astro.props;
+const percent = total ? Math.round((done / total) * 100) : 0;
+---
+
+<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax={total} aria-valuenow={done}>
+	<i style={`width: ${percent}%`}></i>
+</div>
+
+<style>
+	.progress {
+		height: 4px;
+		overflow: hidden;
+		border-radius: 2px;
+		background: var(--border);
+	}
+	i {
+		display: block;
+		height: 100%;
+		background: var(--progress);
+	}
+</style>

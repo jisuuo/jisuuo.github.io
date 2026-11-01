@@ -1,0 +1,218 @@
+---
+import { AUTHOR, GITHUB_URL, SITE_DESCRIPTION } from '../consts';
+import { TOPIC_GROUPS } from '../data/topics';
+import { getPosts, groupBy, slugify } from '../utils/posts';
+import { isInTopic, progressOf, topicTrail, type Topic, type TopicGroup } from '../utils/topic-tree';
+import ProgressBar from './ProgressBar.astro';
+
+interface Props {
+	activeTopic?: string;
+	activeSeries?: string;
+}
+
+const { activeTopic, activeSeries } = Astro.props;
+const posts = await getPosts();
+const refs = posts.map((p) => p.data);
+const series = [...groupBy(posts, 'series')];
+
+// 현재 주제의 경로(그룹 + 상위 주제들)만 펼친다. 아무 것도 활성이 아니면 CS를 펼친다.
+const trail = activeTopic ? topicTrail(TOPIC_GROUPS, activeTopic) : undefined;
+const openGroup = trail?.group.id ?? (activeSeries ? 'projects' : 'cs');
+const openSlugs = new Set(trail?.path.map((t) => t.slug));
+
+const countOf = (slug: string) => posts.filter((p) => isInTopic(p.data.topic, slug)).length;
+const topicLabel = (topic: Topic) => {
+	const { done, total } = progressOf([topic], refs);
+	return total ? `${done}/${total}` : String(countOf(topic.slug));
+};
+const groupStats = (group: TopicGroup) => {
+	if (group.id === 'projects') return { label: String(series.reduce((n, [, ps]) => n + ps.length, 0)), progress: undefined };
+	const progress = progressOf(group.topics, refs);
+	const count = group.topics.reduce((n, t) => n + countOf(t.slug), 0);
+	return progress.total ? { label: `${progress.done}/${progress.total}`, progress } : { label: String(count), progress: undefined };
+};
+---
+
+<aside class="sidebar" id="sidebar">
+	<div class="profile">
+		<a class="name" href="/">{AUTHOR}</a>
+		<p class="bio">{SITE_DESCRIPTION}</p>
+		<p class="links">
+			<a href={GITHUB_URL} target="_blank" rel="noopener">GitHub</a>
+			·
+			<a href="/rss.xml">RSS</a>
+		</p>
+	</div>
+
+	<nav class="tree" aria-label="분류">
+		<a class="row all" href="/blog/"><span>전체 글</span><span class="count">{posts.length}</span></a>
+		{
+			TOPIC_GROUPS.map((group) => {
+				const { label, progress } = groupStats(group);
+				return (
+					<details open={group.id === openGroup}>
+						<summary class="row group">
+							<span>{group.name}</span>
+							<span class="count">{label}</span>
+						</summary>
+						{progress && <ProgressBar {...progress} />}
+						<ul>
+							{group.id === 'projects'
+								? series.map(([name, ps]) => (
+										<li>
+											<a class:list={['row', { active: name === activeSeries }]} href={`/series/${slugify(name)}/`}>
+												<span>{name}</span>
+												<span class="count">{ps.length}</span>
+											</a>
+										</li>
+									))
+								: group.topics.map((topic) => (
+										<li>
+											<a
+												class:list={['row', { active: topic.slug === activeTopic, empty: countOf(topic.slug) === 0 }]}
+												href={`/topics/${topic.slug}/`}
+											>
+												<span>{topic.name}</span>
+												<span class="count">{topicLabel(topic)}</span>
+											</a>
+											{topic.children && openSlugs.has(topic.slug) && (
+												<ul>
+													{topic.children.map((child) => (
+														<li>
+															<a
+																class:list={['row', 'sub', { active: child.slug === activeTopic, empty: countOf(child.slug) === 0 }]}
+																href={`/topics/${child.slug}/`}
+															>
+																<span>{child.name}</span>
+																<span class="count">{topicLabel(child)}</span>
+															</a>
+														</li>
+													))}
+												</ul>
+											)}
+										</li>
+									))}
+						</ul>
+					</details>
+				);
+			})
+		}
+	</nav>
+
+	<nav class="pages" aria-label="페이지">
+		<a href="/about/">About</a>
+		<a href="/projects/">Projects</a>
+		<a href="/tags/">Tags</a>
+		<a href="/series/">Series</a>
+	</nav>
+</aside>
+
+<style>
+	.sidebar {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		padding: 1.75rem 1rem;
+		border-right: 1px solid var(--border);
+		background: var(--bg-soft);
+		font-size: 0.9rem;
+		line-height: 1.5;
+	}
+	.profile {
+		padding: 0 0.5rem;
+	}
+	.name {
+		color: var(--text);
+		font-size: 1.1rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.bio,
+	.links {
+		margin: 0.25rem 0 0;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+	}
+	.links a {
+		color: inherit;
+	}
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.row {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.2rem 0.5rem;
+		border-radius: 6px;
+		color: var(--text-muted);
+		text-decoration: none;
+	}
+	a.row:hover {
+		background: var(--border);
+		color: var(--text);
+	}
+	.all,
+	.group {
+		color: var(--text);
+		font-weight: 700;
+	}
+	details {
+		margin-top: 0.5rem;
+	}
+	summary {
+		cursor: pointer;
+		list-style: none;
+	}
+	summary::-webkit-details-marker {
+		display: none;
+	}
+	summary span:first-child::before {
+		content: '▸';
+		display: inline-block;
+		width: 1rem;
+		color: var(--text-muted);
+		font-size: 0.75rem;
+	}
+	details[open] summary span:first-child::before {
+		content: '▾';
+	}
+	details :global(.progress) {
+		margin: 0.15rem 0.5rem 0.35rem;
+	}
+	details > ul .row {
+		padding-left: 1.5rem;
+	}
+	details > ul .row.sub {
+		padding-left: 2.5rem;
+		font-size: 0.85rem;
+	}
+	.row.empty {
+		opacity: 0.6;
+	}
+	.row.active {
+		background: var(--accent-soft);
+		color: var(--accent);
+		font-weight: 600;
+		opacity: 1;
+	}
+	.count {
+		flex-shrink: 0;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 400;
+	}
+	.pages {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.75rem;
+		margin-top: auto;
+		padding: 0 0.5rem;
+		font-size: 0.8rem;
+	}
+	.pages a {
+		color: var(--text-muted);
+	}
+</style>
